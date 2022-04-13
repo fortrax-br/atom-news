@@ -13,7 +13,7 @@ async def start(app: Client, msg: Message):
         "press 'Menu' button to open it",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("Menu", callback_data="menu")],
-            [InlineKeyboardButton("Source code", url="https://github.com/fortrax-br")]
+            [InlineKeyboardButton("Source code", url="https://github.com/fortrax-br/atom-news")]
         ])
     )
     try: app.database.addUser(msg.chat.id)
@@ -44,18 +44,3 @@ async def add(_, msg: Message):
         return
     app.database.linkServiceToUser(service_id, user_id)
     await msg.reply(f"Service __{service_title}__ added.", parse_mode="markdown")
-
-
-@app.on_message(command('del'))
-async def delete(_, msg: Message):
-    user_id = app.database.getUser(msg.chat.id).id
-    services = app.database.getServicesOfUser(user_id)
-    rows = []
-    for service in services:
-        rows.append([
-            InlineKeyboardButton(service.title, callback_data=f'del {service.id}')
-        ])
-    if len(rows) == 0:
-        await msg.reply("You don't have any service registered!")
-    else:
-        await msg.reply("Choose a service:", reply_markup=InlineKeyboardMarkup(rows))
