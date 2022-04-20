@@ -9,7 +9,10 @@ class Controller:
         meta = sql.MetaData(self.engine)
         self.users = sql.Table(
             "users", meta,
-            sql.Column("id", sql.Integer, primary_key=True, autoincrement=True),
+            sql.Column(
+                "id", sql.Integer,
+                primary_key=True, autoincrement=True
+            ),
             sql.Column("chat_id", sql.BigInteger, unique=True),
             sql.Column("title_style", sql.Integer, server_default="2"),
             sql.Column("service_style", sql.Integer, server_default="0"),
@@ -17,7 +20,10 @@ class Controller:
         )
         self.services = sql.Table(
             "services", meta,
-            sql.Column("id", sql.Integer, primary_key=True, autoincrement=True),
+            sql.Column(
+                "id", sql.Integer,
+                primary_key=True, autoincrement=True
+            ),
             sql.Column("url", sql.String(2048), unique=True),
             sql.Column("title", sql.String(2048)),
             sql.Column("last_update", sql.BigInteger)
@@ -34,9 +40,11 @@ class Controller:
         return cmd.execute().inserted_primary_key[0]
 
     def getUser(self, chat_id: int) -> datatypes.User:
-        try: self.addUser(chat_id)
-        except: pass
-        query = self.users.select().where(self.users.c.chat_id==chat_id)
+        try:
+            self.addUser(chat_id)
+        except Exception:
+            pass
+        query = self.users.select().where(self.users.c.chat_id == chat_id)
         user = query.execute().fetchone()
         return datatypes.User(*user)
 
@@ -45,13 +53,15 @@ class Controller:
         return cmd.execute().inserted_primary_key[0]
 
     def getService(self, service_url: str) -> datatypes.Service:
-        query = self.services.select().where(self.services.c.url==service_url)
+        query = self.services.select().where(
+            self.services.c.url == service_url
+        )
         service = query.execute().fetchone()
         return datatypes.Service(*service)
-    
+
     def setServiceLastUpdate(self, service_id: int, update: int):
         self.services.update().values(last_update=update).where(
-            self.services.c.id==service_id
+            self.services.c.id == service_id
         ).execute()
 
     def getAllServices(self) -> List[datatypes.Service]:
@@ -61,37 +71,39 @@ class Controller:
 
     def getUsersOfService(self, service_id: int) -> List[datatypes.User]:
         query = self.users.select().where(
-            self.linked.c.user_id==self.users.c.id,
-            self.linked.c.service_id==self.services.c.id,
-            self.services.c.id==service_id
+            self.linked.c.user_id == self.users.c.id,
+            self.linked.c.service_id == self.services.c.id,
+            self.services.c.id == service_id
         )
         users = query.execute().fetchall()
         return list(map(lambda user: datatypes.User(*user), users))
 
     def getServicesOfUser(self, user_id: int) -> List[datatypes.Service]:
         query = self.services.select().where(
-            self.linked.c.user_id==self.users.c.id,
-            self.linked.c.service_id==self.services.c.id,
-            self.users.c.id==user_id
+            self.linked.c.user_id == self.users.c.id,
+            self.linked.c.service_id == self.services.c.id,
+            self.users.c.id == user_id
         )
         services = query.execute().fetchall()
         return list(map(lambda service: datatypes.Service(*service), services))
 
     def linkServiceToUser(self, service_id: int, user_id: int):
-        cmd = self.linked.insert().values(service_id=service_id, user_id=user_id)
+        cmd = self.linked.insert().values(
+            service_id=service_id, user_id=user_id
+        )
         cmd.execute()
-    
+
     def serviceAlreadyLinked(self, service_id: int, user_id: int) -> bool:
         query = self.linked.select().where(
-            self.linked.c.user_id==user_id,
-            self.linked.c.service_id==service_id
+            self.linked.c.user_id == user_id,
+            self.linked.c.service_id == service_id
         )
         result = query.execute().fetchone()
-        return result != None
+        return True if result is not None else False
 
     def unlinkUserFromService(self, service_id: int, user_id: int):
         cmd = self.linked.delete().where(
-            self.linked.c.service_id==service_id,
-            self.linked.c.user_id==user_id
+            self.linked.c.service_id == service_id,
+            self.linked.c.user_id == user_id
         )
         cmd.execute()
