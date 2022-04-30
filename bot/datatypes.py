@@ -2,6 +2,13 @@ from dataclasses import dataclass
 
 
 @dataclass
+class Style:
+    title_style: int | None = None
+    service_style: int | None = None
+    description_style: int | None = None
+
+
+@dataclass
 class User:
     id: int
     chat_id: int

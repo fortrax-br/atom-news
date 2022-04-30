@@ -1,6 +1,7 @@
 import sqlalchemy as sql
 from typing import List
 from . import datatypes
+from dataclasses import asdict
 
 
 class Controller:
@@ -47,6 +48,14 @@ class Controller:
         query = self.users.select().where(self.users.c.chat_id == chat_id)
         user = query.execute().fetchone()
         return datatypes.User(*user)
+
+    def updateUserStyle(self, user_id: int, style: datatypes.Style):
+        raw = asdict(style)
+        modified = dict(filter(lambda p: p[1] != None, raw.items()))
+        cmd = self.users.update().values(**modified).where(
+            self.users.c.id == user_id
+        )
+        cmd.execute()
 
     def addService(self, title: str, url: str) -> int:
         cmd = self.services.insert().values(title=title, url=url)

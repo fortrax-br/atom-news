@@ -1,28 +1,13 @@
+from feedparser import FeedParserDict
+
+
 styles = [
-    {
-        'name': 'Normal',
-        'format': '{}'
-    },
-    {
-        'name': 'Italic',
-        'format': '<i>{}</i>'
-    },
-    {
-        'name': 'Bold',
-        'format': '<b>{}</b>'
-    },
-    {
-        'name': 'Monospace',
-        'format': '<pre>{}</pre>'
-    },
-    {
-        'name': 'Underline',
-        'format': '<u>{}</u>'
-    },
-    {
-        'name': 'Spoiler',
-        'format': '<tg-spoiler>{}</tg-spoiler>'
-    },
+    { 'name': 'Normal',    'format': '{}' },
+    { 'name': 'Italic',    'format': '<i>{}</i>' },
+    { 'name': 'Bold',      'format': '<b>{}</b>' },
+    { 'name': 'Monospace', 'format': '<pre>{}</pre>' },
+    { 'name': 'Underline', 'format': '<u>{}</u>' },
+    { 'name': 'Spoiler',   'format': '<tg-spoiler>{}</tg-spoiler>' },
 ]
 
 
@@ -40,7 +25,7 @@ class Post:
         "description": styles[1]['format']
     }
 
-    def __init__(self, service: str, post: dict):
+    def __init__(self, service: str, post: FeedParserDict):
         self.service = service
         self.post = post
 
@@ -56,5 +41,5 @@ class Post:
         text += self.style['description'].format(scapeString(description))
         return text
 
-    def setStyle(self, position: int, style: int):
+    def setStyle(self, position: str, style: int):
         self.style[position] = styles[style]['format']

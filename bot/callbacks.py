@@ -1,4 +1,4 @@
-from . import app, posts
+from . import app, posts, datatypes
 from pyrogram.types import (
     CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 )
@@ -6,17 +6,20 @@ from pyrogram.types import (
 
 @app.on_callback_query()
 async def callback_handler(_, callback: CallbackQuery):
-    cmd = callback.data.split()
-    if cmd[0] == 'menu':
+    args = callback.data.split()
+    cmd = args[0]
+    if cmd == 'menu':
         await menu(callback)
-    elif cmd[0] == 'deleteList':
+    elif cmd == 'deleteList':
         await delete_list(callback)
-    elif cmd[0] == 'delete':
-        await delete_service(callback, int(cmd[1]))
-    elif cmd[0] == 'styleList':
+    elif cmd == 'delete':
+        await delete_service(callback, int(args[1]))
+    elif cmd == 'styleList':
         await style_list(callback)
-    elif cmd[0] == 'chooseStyle':
-        await style_choose(callback, cmd[1])
+    elif cmd == 'chooseStyle':
+        await style_choose(callback, str(args[1]))
+    elif cmd == 'setStyle':
+        await style_set(callback, str(args[1]), int(args[2]))
 
 
 async def menu(callback: CallbackQuery):
@@ -35,9 +38,9 @@ async def style_list(callback: CallbackQuery):
         "Select the part of the post you want to select the style:",
         reply_markup=InlineKeyboardMarkup(
             list(map(
-                lambda v: [InlineKeyboardButton(
-                    text=v.title(),
-                    callback_data=f'chooseStyle {v}'
+                lambda s: [InlineKeyboardButton(
+                    text=s.title(),
+                    callback_data=f'chooseStyle {s}'
                 )],
                 posts.Post.style.keys()
             ))
@@ -60,7 +63,13 @@ async def style_choose(callback: CallbackQuery, position: str):
 
 
 async def style_set(callback: CallbackQuery, position: str, style: int):
-    pass
+    user_id = app.database.getUser(callback.message.chat.id).id
+    app.database.updateUserStyle(
+        user_id,
+        datatypes.Style(**{position+'_style': style})
+    )
+    await callback.answer("Style updated!")
+    await style_list(callback)
 
 
 async def delete_list(callback: CallbackQuery):

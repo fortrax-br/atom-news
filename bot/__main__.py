@@ -6,6 +6,10 @@ from pyrogram import idle
 
 
 app.start()
-Thread(target=updater.run, args=()).start()
-print("Bot started!")
+update_loop = Thread(target=updater.run)
+update_loop.start()
+update_loop._tstate_lock.release()
+print("Bot started! Press CTRL+C to stop.")
 idle()
+print("Stopping bot...")
+app.stop()
