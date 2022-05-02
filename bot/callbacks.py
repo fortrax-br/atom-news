@@ -1,7 +1,11 @@
 from . import app, posts, datatypes
+from dataclasses import asdict
 from pyrogram.types import (
     CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 )
+
+
+go_back = lambda data: [InlineKeyboardButton('« Go back', callback_data=data)]
 
 
 @app.on_callback_query()
@@ -34,31 +38,33 @@ async def menu(callback: CallbackQuery):
 
 
 async def style_list(callback: CallbackQuery):
+    user = asdict(app.database.getUser(callback.message.chat.id))
+    buttons = []
+    for position in posts.Post.style.keys():
+        actual_style = posts.styles[user[position+'_style']]['name']
+        buttons.append([InlineKeyboardButton(
+            text=f"{position.title()} - {actual_style}",
+            callback_data=f"chooseStyle {position}"
+        )])
+    buttons.append(go_back('menu'))
     await callback.edit_message_text(
         "Select the part of the post you want to select the style:",
-        reply_markup=InlineKeyboardMarkup(
-            list(map(
-                lambda s: [InlineKeyboardButton(
-                    text=s.title(),
-                    callback_data=f'chooseStyle {s}'
-                )],
-                posts.Post.style.keys()
-            ))
-        )
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
 
 
 async def style_choose(callback: CallbackQuery, position: str):
-    lines = list(map(
+    buttons = list(map(
         lambda style: [InlineKeyboardButton(
             text=style['name'],
             callback_data=f'setStyle {position} {posts.styles.index(style)}'
         )],
         posts.styles
     ))
+    buttons.append(go_back('styleList'))
     await callback.edit_message_text(
         f"Choose one style for the {position}:",
-        reply_markup=InlineKeyboardMarkup(lines)
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
 
 
@@ -75,22 +81,23 @@ async def style_set(callback: CallbackQuery, position: str, style: int):
 async def delete_list(callback: CallbackQuery):
     user_id = app.database.getUser(callback.message.chat.id).id
     services = app.database.getServicesOfUser(user_id)
-    lines = []
-    for service in services:
-        lines.append([
-            InlineKeyboardButton(service.title, f'delete {service.id}')
-        ])
-    if len(lines) == 0:
+    if len(services) == 0:
         await callback.answer("You don't have any service registered!")
         try:
             await menu(callback)
         except Exception:
             pass
         return
-    lines.append([InlineKeyboardButton("Go back", "menu")])
+    buttons = []
+    for service in services:
+        buttons.append([InlineKeyboardButton(
+            text=service.title,
+            callback_data=f'delete {service.id}'
+        )])
+    buttons.append(go_back('menu'))
     await callback.edit_message_text(
         "Choose a service:",
-        reply_markup=InlineKeyboardMarkup(lines)
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
 
 
