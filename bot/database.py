@@ -1,7 +1,7 @@
-import sqlalchemy as sql
 from typing import List
-from . import datatypes
 from dataclasses import asdict
+import sqlalchemy as sql
+from . import datatypes
 
 
 class Controller:
@@ -15,9 +15,9 @@ class Controller:
                 primary_key=True, autoincrement=True
             ),
             sql.Column("chat_id", sql.BigInteger, unique=True),
-            sql.Column("title_style", sql.Integer, server_default="2"),
+            sql.Column("title_style", sql.Integer, server_default="1"),
             sql.Column("service_style", sql.Integer, server_default="0"),
-            sql.Column("description_style", sql.Integer, server_default="1"),
+            sql.Column("description_style", sql.Integer, server_default="3"),
         )
         self.services = sql.Table(
             "services", meta,
@@ -25,8 +25,8 @@ class Controller:
                 "id", sql.Integer,
                 primary_key=True, autoincrement=True
             ),
-            sql.Column("url", sql.String(2048), unique=True),
-            sql.Column("title", sql.String(2048)),
+            sql.Column("url", sql.Text, unique=True),
+            sql.Column("title", sql.Text),
             sql.Column("last_update", sql.BigInteger)
         )
         self.linked = sql.Table(

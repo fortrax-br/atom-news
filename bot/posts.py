@@ -13,8 +13,8 @@ styles = [
 
 def scapeString(text: str) -> str:
     characters = {'<': '&lt;', '>': '&gt;', '&': '&amp;'}
-    for c, r in characters.items():
-        text = text.replace(c, r)
+    for character, replace_by in characters.items():
+        text = text.replace(character, replace_by)
     return text
 
 

@@ -1,19 +1,22 @@
+from typing import List, Callable
+from threading import Thread
+from time import sleep, mktime
+import feedparser
 from . import app, datatypes, RELOAD_DELAY
 from .posts import Post
-from time import sleep, mktime
-from pyrogram import Client
-from typing import List
-from threading import Thread
-import feedparser
 
 
-def run():
-    while True:
-        verifyUpdates(app)
-        sleep(RELOAD_DELAY)
+def run(stop: Callable):
+    counter = 0
+    while not stop():
+        if counter == RELOAD_DELAY:
+            verifyUpdates()
+            counter = 0
+        sleep(1)
+        counter += 1
 
 
-def verifyUpdates(app: Client):
+def verifyUpdates():
     services = app.database.getAllServices()
     for service in services:
         users = app.database.getUsersOfService(service.id)

@@ -1,13 +1,12 @@
-from . import app
 from time import time
-from pyrogram import Client
 from pyrogram.filters import command
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from feedparser import parse as FeedParse
+from . import app
 
 
 @app.on_message(command('start'))
-async def start(app: Client, msg: Message):
+async def start(_, msg: Message):
     await msg.reply(
         "Hello, I'm a bot to send you posts of your RSS services, " +
         "press 'Menu' button to open it",
@@ -16,8 +15,10 @@ async def start(app: Client, msg: Message):
             [InlineKeyboardButton("Source code", url="https://github.com/fortrax-br/atom-news")]
         ])
     )
-    try: app.database.addUser(msg.chat.id)
-    except: pass
+    try:
+        app.database.addUser(msg.chat.id)
+    except Exception:
+        pass
 
 
 @app.on_message(command('add'))
@@ -35,11 +36,11 @@ async def add(_, msg: Message):
     try:
         service_id = app.database.addService(service_title, service.href)
         app.database.setServiceLastUpdate(service_id, int(time()))
-    except:
+    except Exception:
         service_id = app.database.getService(service.href).id
     user_id = app.database.getUser(msg.chat.id).id
-    alreadyLinked = app.database.serviceAlreadyLinked(service_id, user_id)
-    if alreadyLinked:
+    already_linked = app.database.serviceAlreadyLinked(service_id, user_id)
+    if already_linked:
         await msg.reply("The service is already added!")
         return
     app.database.linkServiceToUser(service_id, user_id)

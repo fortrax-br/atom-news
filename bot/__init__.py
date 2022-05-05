@@ -1,7 +1,7 @@
-from dotenv import load_dotenv
 from os import environ
-from . import database
+from dotenv import load_dotenv
 from pyrogram import Client
+from . import database
 
 
 load_dotenv('.env')

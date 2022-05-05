@@ -1,8 +1,8 @@
-from . import app, posts, datatypes
 from dataclasses import asdict
 from pyrogram.types import (
     CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 )
+from . import app, posts, datatypes
 
 
 go_back = lambda data: [InlineKeyboardButton('« Go back', callback_data=data)]
@@ -40,7 +40,7 @@ async def menu(callback: CallbackQuery):
 async def style_list(callback: CallbackQuery):
     user = asdict(app.database.getUser(callback.message.chat.id))
     buttons = []
-    for position in posts.Post.style.keys():
+    for position in posts.Post.style:
         actual_style = posts.styles[user[position+'_style']]['name']
         buttons.append([InlineKeyboardButton(
             text=f"{position.title()} - {actual_style}",
