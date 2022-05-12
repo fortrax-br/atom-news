@@ -1,12 +1,14 @@
 from typing import List, Callable
 from threading import Thread
 from time import sleep, mktime
+from pyrogram.enums import ParseMode
 import feedparser
 from . import app, datatypes, RELOAD_DELAY
 from .posts import Post
 
 
 def run(stop: Callable):
+    verifyUpdates()
     counter = 0
     while not stop():
         if counter == RELOAD_DELAY:
@@ -20,7 +22,7 @@ def verifyUpdates():
     services = app.database.getAllServices()
     for service in services:
         users = app.database.getUsersOfService(service.id)
-        if len(users) == 0:
+        if not users:
             continue
         update = feedparser.parse(service.url, sanitize_html=True)
         raw_posts = []
@@ -28,7 +30,7 @@ def verifyUpdates():
             if mktime(post['updated_parsed']) <= service.last_update:
                 break
             raw_posts.append(post)
-        if len(raw_posts) == 0:
+        if not raw_posts:
             continue
         raw_posts.reverse()
         for user in users:
@@ -48,5 +50,5 @@ def sendPostsToUser(user: datatypes.User, service_title: str, posts: List[dict])
         post.setStyle('title', user.title_style)
         post.setStyle('service', user.service_style)
         post.setStyle('description', user.description_style)
-        app.send_message(user.chat_id, post.compile(), parse_mode="html")
+        app.send_message(user.chat_id, post.compile(), parse_mode=ParseMode.HTML)
         sleep(1)

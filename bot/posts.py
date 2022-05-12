@@ -1,14 +1,7 @@
+from typing import Dict
 from feedparser import FeedParserDict
-
-
-styles = [
-    { 'name': 'Normal',    'format': '{}' },
-    { 'name': 'Italic',    'format': '<i>{}</i>' },
-    { 'name': 'Bold',      'format': '<b>{}</b>' },
-    { 'name': 'Monospace', 'format': '<pre>{}</pre>' },
-    { 'name': 'Underline', 'format': '<u>{}</u>' },
-    { 'name': 'Spoiler',   'format': '<tg-spoiler>{}</tg-spoiler>' },
-]
+from bs4 import BeautifulSoup
+from . import style
 
 
 def scapeString(text: str) -> str:
@@ -19,10 +12,10 @@ def scapeString(text: str) -> str:
 
 
 class Post:
-    style = {
-        "title": styles[2]['format'],
-        "service": styles[0]['format'],
-        "description": styles[1]['format']
+    style: Dict[str, style.Style] = {
+        "title": style.getStyle(2),
+        "service": style.getStyle(0),
+        "description": style.getStyle(1)
     }
 
     def __init__(self, service: str, post: FeedParserDict):
@@ -31,15 +24,16 @@ class Post:
 
     def compile(self):
         text = f'<a href="{self.post.link}">'
-        text += self.style['title'].format(scapeString(self.post.title))
+        text += self.style['title'].template.format(scapeString(self.post.title))
         text += '</a>\n'  # Close title link
-        text += self.style['service'].format(scapeString(self.service)) + "\n\n"
+        text += self.style['service'].template.format(scapeString(self.service)) + "\n\n"
         if len(self.post.summary) >= 2048:
-            description = self.post.summary[:2048] + "..."
+            raw_description = self.post.summary[:2048] + "..."
         else:
-            description = self.post.summary
-        text += self.style['description'].format(scapeString(description))
+            raw_description = self.post.summary
+        description = BeautifulSoup(markup=raw_description, features='html.parser')
+        text += self.style['description'].template.format(scapeString(description.getText(strip=True)))
         return text
 
-    def setStyle(self, position: str, style: int):
-        self.style[position] = styles[style]['format']
+    def setStyle(self, position: str, style_id: int):
+        self.style[position] = style.getStyle(style_id)

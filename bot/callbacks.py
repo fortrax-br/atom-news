@@ -2,7 +2,7 @@ from dataclasses import asdict
 from pyrogram.types import (
     CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 )
-from . import app, posts, datatypes
+from . import app, posts, datatypes, style
 
 
 go_back = lambda data: [InlineKeyboardButton('« Go back', callback_data=data)]
@@ -41,9 +41,9 @@ async def style_list(callback: CallbackQuery):
     user = asdict(app.database.getUser(callback.message.chat.id))
     buttons = []
     for position in posts.Post.style:
-        actual_style = posts.styles[user[position+'_style']]['name']
+        actual_style = style.getStyle(user[position+'_style'])
         buttons.append([InlineKeyboardButton(
-            text=f"{position.title()} - {actual_style}",
+            text=f"{position.title()} - {actual_style.name}",
             callback_data=f"chooseStyle {position}"
         )])
     buttons.append(go_back('menu'))
@@ -55,11 +55,11 @@ async def style_list(callback: CallbackQuery):
 
 async def style_choose(callback: CallbackQuery, position: str):
     buttons = list(map(
-        lambda style: [InlineKeyboardButton(
-            text=style['name'],
-            callback_data=f'setStyle {position} {posts.styles.index(style)}'
+        lambda s: [InlineKeyboardButton(
+            text=s.name,
+            callback_data=f'setStyle {position} {s.id}'
         )],
-        posts.styles
+        style.styles
     ))
     buttons.append(go_back('styleList'))
     await callback.edit_message_text(
@@ -68,20 +68,20 @@ async def style_choose(callback: CallbackQuery, position: str):
     )
 
 
-async def style_set(callback: CallbackQuery, position: str, style: int):
+async def style_set(callback: CallbackQuery, position: str, style_id: int):
     user_id = app.database.getUser(callback.message.chat.id).id
     app.database.updateUserStyle(
         user_id,
-        datatypes.Style(**{position+'_style': style})
+        datatypes.Style(**{position+'_style': style_id})
     )
-    await callback.answer("Style updated!")
+    await callback.answer(f"Style for {position} updated!")
     await style_list(callback)
 
 
 async def delete_list(callback: CallbackQuery):
     user_id = app.database.getUser(callback.message.chat.id).id
     services = app.database.getServicesOfUser(user_id)
-    if len(services) == 0:
+    if not services:
         await callback.answer("You don't have any service registered!")
         try:
             await menu(callback)

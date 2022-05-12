@@ -1,6 +1,7 @@
 from time import time
 from pyrogram.filters import command
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.enums import ParseMode
 from feedparser import parse as FeedParse
 from . import app
 
@@ -44,4 +45,4 @@ async def add(_, msg: Message):
         await msg.reply("The service is already added!")
         return
     app.database.linkServiceToUser(service_id, user_id)
-    await msg.reply(f"Service __{service_title}__ added.", parse_mode="markdown")
+    await msg.reply(f"Service __{service_title}__ added.", parse_mode=ParseMode.MARKDOWN)
