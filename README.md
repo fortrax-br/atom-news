@@ -8,5 +8,4 @@ A simple telegram bot for receive RSS news without a external client.
   - [x] Add service
   - [x] Remove services
   - [x] Edit news style
-  - [ ] Add tags for services
   - [ ] Control external chats(groups/channels only)
