@@ -50,5 +50,9 @@ def sendPostsToUser(user: datatypes.User, service_title: str, posts: List[dict])
         post.setStyle('title', user.title_style)
         post.setStyle('service', user.service_style)
         post.setStyle('description', user.description_style)
-        app.send_message(user.chat_id, post.compile(), parse_mode=ParseMode.HTML)
-        sleep(1)
+        try:
+            app.send_message(user.chat_id, post.compile(), parse_mode=ParseMode.HTML)
+        except Exception as error:
+            print(f"Error sending post to {user.chat_id}: {error}")
+            break
+        sleep(1.2)

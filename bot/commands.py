@@ -9,8 +9,7 @@ from . import app
 @app.on_message(command('start'))
 async def start(_, msg: Message):
     await msg.reply(
-        "Hello, I'm a bot to send you posts of your RSS services, " +
-        "press 'Menu' button to open it",
+        "Hello, I'm a bot to send you posts of your RSS services!",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("Menu", callback_data="menu")],
             [InlineKeyboardButton("Source code", url="https://github.com/fortrax-br/atom-news")]
@@ -34,15 +33,13 @@ async def add(_, msg: Message):
         await msg.reply("Failed to get informations about this service!")
         return
     service_title = service.feed.title.title()
-    try:
+    try:  # Try to add the service to the list and get the id
         service_id = app.database.addService(service_title, service.href)
         app.database.setServiceLastUpdate(service_id, int(time()))
-    except Exception:
+    except:  # If the service is alredy on the database it will get the id
         service_id = app.database.getService(service.href).id
-    user_id = app.database.getUser(msg.chat.id).id
-    already_linked = app.database.serviceAlreadyLinked(service_id, user_id)
-    if already_linked:
+    if app.database.serviceAlreadyLinked(service_id, msg.chat.id):
         await msg.reply("The service is already added!")
         return
-    app.database.linkServiceToUser(service_id, user_id)
+    app.database.linkServiceToUser(service_id, msg.chat.id)
     await msg.reply(f"Service __{service_title}__ added.", parse_mode=ParseMode.MARKDOWN)

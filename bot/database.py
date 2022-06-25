@@ -37,31 +37,36 @@ class Controller:
         meta.create_all()
 
     def addUser(self, chat_id: int) -> int:
+        "Add a normal user with default values and return they id"
         cmd = self.users.insert().values(chat_id=chat_id)
         return cmd.execute().inserted_primary_key[0]
 
     def getUser(self, chat_id: int) -> datatypes.User:
+        "Get a user(create it if not exists) based on the chat id"
         try:
-            self.addUser(chat_id)
+            self.addUser(chat_id)  # Create the user if not exists
         except Exception:
             pass
         query = self.users.select().where(self.users.c.chat_id == chat_id)
         user = query.execute().fetchone()
         return datatypes.User(*user)
 
-    def updateUserStyle(self, user_id: int, style: datatypes.Style):
+    def updateUserStyle(self, chat_id: int, style: datatypes.Style):
+        "Set the post style to be used"
         raw = asdict(style)
-        modified = dict(filter(lambda p: p[1] != None, raw.items()))
+        modified = dict(filter(lambda p: p[1] != None, raw.items()))  # Filter the non empty values
         cmd = self.users.update().values(**modified).where(
-            self.users.c.id == user_id
+            self.users.c.chat_id == chat_id
         )
         cmd.execute()
 
     def addService(self, title: str, url: str) -> int:
+        "Add a service to the database to be linked to many users at the same time"
         cmd = self.services.insert().values(title=title, url=url)
         return cmd.execute().inserted_primary_key[0]
 
     def getService(self, service_url: str) -> datatypes.Service:
+        "Get only a service based on the URL"
         query = self.services.select().where(
             self.services.c.url == service_url
         )
@@ -87,32 +92,34 @@ class Controller:
         users = query.execute().fetchall()
         return list(map(lambda user: datatypes.User(*user), users))
 
-    def getServicesOfUser(self, user_id: int) -> List[datatypes.Service]:
+    def getServicesOfUser(self, chat_id: int) -> List[datatypes.Service]:
         query = self.services.select().where(
             self.linked.c.user_id == self.users.c.id,
             self.linked.c.service_id == self.services.c.id,
-            self.users.c.id == user_id
+            self.users.c.chat_id == chat_id
         )
         services = query.execute().fetchall()
         return list(map(lambda service: datatypes.Service(*service), services))
 
-    def linkServiceToUser(self, service_id: int, user_id: int):
+    def linkServiceToUser(self, service_id: int, chat_id: int):
         cmd = self.linked.insert().values(
-            service_id=service_id, user_id=user_id
+            service_id=service_id,
+            user_id=self.getUser(chat_id).id
         )
         cmd.execute()
 
-    def serviceAlreadyLinked(self, service_id: int, user_id: int) -> bool:
+    def serviceAlreadyLinked(self, service_id: int, chat_id: int) -> bool:
         query = self.linked.select().where(
-            self.linked.c.user_id == user_id,
-            self.linked.c.service_id == service_id
+            self.linked.c.user_id == self.users.c.id,
+            self.linked.c.service_id == service_id,
+            self.users.c.chat_id == chat_id
         )
         result = query.execute().fetchone()
         return True if result is not None else False
 
-    def unlinkUserFromService(self, service_id: int, user_id: int):
+    def unlinkUserFromService(self, chat_id: int, service_id: int):
         cmd = self.linked.delete().where(
             self.linked.c.service_id == service_id,
-            self.linked.c.user_id == user_id
+            self.linked.c.user_id == self.getUser(chat_id).id
         )
         cmd.execute()

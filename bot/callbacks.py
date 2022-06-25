@@ -1,7 +1,5 @@
 from dataclasses import asdict
-from pyrogram.types import (
-    CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-)
+from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from . import app, posts, datatypes, style
 
 
@@ -69,9 +67,8 @@ async def style_choose(callback: CallbackQuery, position: str):
 
 
 async def style_set(callback: CallbackQuery, position: str, style_id: int):
-    user_id = app.database.getUser(callback.message.chat.id).id
     app.database.updateUserStyle(
-        user_id,
+        callback.message.chat.id,
         datatypes.Style(**{position+'_style': style_id})
     )
     await callback.answer(f"Style for {position} updated!")
@@ -79,8 +76,7 @@ async def style_set(callback: CallbackQuery, position: str, style_id: int):
 
 
 async def delete_list(callback: CallbackQuery):
-    user_id = app.database.getUser(callback.message.chat.id).id
-    services = app.database.getServicesOfUser(user_id)
+    services = app.database.getServicesOfUser(callback.message.chat.id)
     if not services:
         await callback.answer("You don't have any service registered!")
         try:
@@ -102,7 +98,6 @@ async def delete_list(callback: CallbackQuery):
 
 
 async def delete_service(callback: CallbackQuery, service_id: int):
-    user_id = app.database.getUser(callback.from_user.id).id
-    app.database.unlinkUserFromService(service_id, user_id)
+    app.database.unlinkUserFromService(callback.message.chat.id, service_id)
     await callback.answer("Service removed!")
     await delete_list(callback)

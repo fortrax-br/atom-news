@@ -2,4 +2,4 @@
 *session*
 .venv/
 __pycache__
-database.db
+database.sqlite3

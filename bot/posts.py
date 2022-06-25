@@ -12,7 +12,7 @@ def scapeString(text: str) -> str:
 
 
 class Post:
-    style: Dict[str, style.Style] = {
+    style = {
         "title": style.getStyle(2),
         "service": style.getStyle(0),
         "description": style.getStyle(1)
@@ -24,7 +24,7 @@ class Post:
 
     def compile(self):
         text = f'<a href="{self.post.link}">'
-        text += self.style['title'].template.format(scapeString(self.post.title))
+        text += self.style['title'].template.format(scapeString(self.post.title.title()))
         text += '</a>\n'  # Close title link
         text += self.style['service'].template.format(scapeString(self.service)) + "\n\n"
         if len(self.post.summary) >= 2048:

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from re import S
 
 
 @dataclass
@@ -19,7 +20,7 @@ styles = [
 
 
 def getStyle(id: int) -> Style | None:
-    style = list(map(lambda style: style.id == id, styles))
+    style = list(filter(lambda s: s if s.id == id else None, styles))
     if not style:
         return None
     return style[0]
