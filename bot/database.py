@@ -123,3 +123,11 @@ class Controller:
             self.linked.c.user_id == self.getUser(chat_id).id
         )
         cmd.execute()
+
+    def countServicesOfUser(self, chat_id) -> int:
+        query = self.linked.select().where(
+            self.linked.c.user_id == self.users.c.id,
+            self.users.c.chat_id == chat_id
+        )
+        count = len(query.execute().fetchall())
+        return count

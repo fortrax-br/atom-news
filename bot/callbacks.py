@@ -1,5 +1,6 @@
 from dataclasses import asdict
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.enums import ParseMode
 from . import app, posts, datatypes, style
 
 
@@ -22,6 +23,8 @@ async def callback_handler(_, callback: CallbackQuery):
         await style_choose(callback, str(args[1]))
     elif cmd == 'setStyle':
         await style_set(callback, str(args[1]), int(args[2]))
+    elif cmd == 'getInformations':
+        await get_informations(callback)
 
 
 async def menu(callback: CallbackQuery):
@@ -101,3 +104,22 @@ async def delete_service(callback: CallbackQuery, service_id: int):
     app.database.unlinkUserFromService(callback.message.chat.id, service_id)
     await callback.answer("Service removed!")
     await delete_list(callback)
+
+
+async def get_informations(callback: CallbackQuery):
+    user = app.database.getUser(callback.message.chat.id)
+    services_count = app.database.countServicesOfUser(callback.message.chat.id)
+    title_style = style.getStyle(user.title_style)
+    service_style = style.getStyle(user.service_style)
+    description_style = style.getStyle(user.description_style)
+    text = "Some informations of the actual account preferences:\n\n"
+    text += f"Amount of services linked: {services_count}\n"
+    text += "Post style:\n"
+    text += f"  Title: {title_style.template.format(title_style.name)}\n"
+    text += f"  Service: {service_style.template.format(service_style.name)}\n"
+    text += f"  Description: {description_style.template.format(description_style.name)}"
+    await callback.edit_message_text(
+        text,
+        parse_mode=ParseMode.HTML,
+        reply_markup=InlineKeyboardMarkup([go_back('menu')])
+    )
