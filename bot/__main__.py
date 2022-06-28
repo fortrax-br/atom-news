@@ -1,4 +1,4 @@
-# Load callbacks and commands and other things
+# Load callbacks, commands and other things
 from threading import Thread
 from pyrogram import idle
 from . import app, updater, callbacks, commands

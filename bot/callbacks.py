@@ -2,7 +2,7 @@ from dataclasses import asdict
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.enums import ParseMode
 from . import app, posts, datatypes, style
-
+import textwrap
 
 go_back = lambda data: [InlineKeyboardButton('« Go back', callback_data=data)]
 
@@ -48,10 +48,30 @@ async def style_list(callback: CallbackQuery):
             callback_data=f"chooseStyle {position}"
         )])
     buttons.append(go_back('menu'))
-    await callback.edit_message_text(
-        "Select the part of the post you want to select the style:",
-        reply_markup=InlineKeyboardMarkup(buttons)
+    example = posts.Post(
+        "What is Lorem Ipsum?",
+        "https://google.com",
+        "Example service",
+        textwrap.dedent("""
+            Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+            Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+            when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+            It has survived not only five centuries, but also the leap into electronic typesetting,
+            remaining essentially unchanged.
+            It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages,
+            and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+        """)
     )
+    example.setStyle('title', user['title_style'])
+    example.setStyle('service', user['service_style'])
+    example.setStyle('description', user['description_style'])
+    text = textwrap.dedent(f'''
+        Example of post with the actual style:
+        {example.compile()}
+
+        Select the part of the post you want to select the style:
+    ''')
+    await callback.edit_message_text(text, reply_markup=InlineKeyboardMarkup(buttons))
 
 
 async def style_choose(callback: CallbackQuery, position: str):
@@ -112,12 +132,15 @@ async def get_informations(callback: CallbackQuery):
     title_style = style.getStyle(user.title_style)
     service_style = style.getStyle(user.service_style)
     description_style = style.getStyle(user.description_style)
-    text = "Some informations of the actual account preferences:\n\n"
-    text += f"Amount of services linked: {services_count}\n"
-    text += "Post style:\n"
-    text += f"  Title: {title_style.template.format(title_style.name)}\n"
-    text += f"  Service: {service_style.template.format(service_style.name)}\n"
-    text += f"  Description: {description_style.template.format(description_style.name)}"
+    text = textwrap.dedent(f'''
+        Some informations of the actual account preferences:
+
+        Amount of services linked: {services_count}
+        Post style:
+          Title: {title_style.template.format(title_style.name)}
+          Service: {service_style.template.format(service_style.name)}
+          Description: {description_style.template.format(description_style.name)}
+    ''')
     await callback.edit_message_text(
         text,
         parse_mode=ParseMode.HTML,

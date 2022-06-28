@@ -45,8 +45,8 @@ def verifyUpdates():
 
 
 def sendPostsToUser(user: datatypes.User, service_title: str, posts: List[dict]):
-    for raw_post in posts:
-        post = Post(service_title, raw_post)
+    for post in posts:
+        post = Post(post.title, post.link, service_title, post.summary)
         post.setStyle('title', user.title_style)
         post.setStyle('service', user.service_style)
         post.setStyle('description', user.description_style)
